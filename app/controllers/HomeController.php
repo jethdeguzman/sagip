@@ -1,23 +1,60 @@
 <?php
 
-class HomeController extends BaseController {
+class HomeController extends \BaseController {
+	protected $layout = "landing.default";
+	public function getIndex(){
+	//	Session::put('userid','001');
+	//	Session::put('username','jehdeguzman');
 
-	/*
-	|--------------------------------------------------------------------------
-	| Default Home Controller
-	|--------------------------------------------------------------------------
-	|
-	| You may wish to use controllers instead of, or in addition to, Closure
-	| based routes. That's great! Here is an example controller method to
-	| get you started. To route to this controller, just add the route:
-	|
-	|	Route::get('/', 'HomeController@showWelcome');
-	|
-	*/
+		$this->layout->title="Welcome to Sagip.ph";
+		// $campaign = new Campaign;
+		// $result = $campaign->getImage();
+		$campaign = new Campaign;
+		$image = $campaign->getCampaignImage();
 
-	public function showWelcome()
-	{
-		return View::make('hello');
+		$users = new Users;
+		$member = $users->getRecentUsers();
+
+		$this->layout->foot = View::make("landing.foot")->with(array('data'=>$image, 'data2'=>$member));
+		if (Session::has('userid')){
+			$username = Session::get('username');
+			$logstatus = true;
+			$userid = Session::get('userid');
+			$profile = new Profile;
+			$pic = "#";
+			$result = $profile->getProfile($userid);
+			
+			if ($result){
+				
+				$pic = $result->profilepic;
+			}
+			
+			$data  = array('username' => $username, 'logstatus' => $logstatus, 'profilepic' => $pic);
+			$campaign = new Campaign;
+			$data2 = $campaign->getCampaignHome();
+			$donation = new Donations;
+			$data3 = $donation->getTopContributorsHome();
+			
+			$this->layout->head = View::make("landing.head")->with($data);
+			$this->layout->body = View::make("landing.bodyhome")->with(array('data2'=>$data2, 'data3'=>$data3, 'logstatus'=>$logstatus));
+			//return View::make('home')->with($data);
+		}else{
+			
+			$logstatus = false;
+			$data = array('logstatus' => $logstatus);
+			$campaign = new Campaign;
+			$data2 = $campaign->getCampaignHome();
+			$donation = new Donations;
+			$data3 = $donation->getTopContributorsHome();
+			
+			$this->layout->head = View::make("landing.head")->with($data);
+			$this->layout->body = View::make("landing.bodyhome")->with(array('data2'=>$data2, 'data3'=>$data3, 'logstatus' => $logstatus));
+		}
+
 	}
+	
+	
+
+	
 
 }
